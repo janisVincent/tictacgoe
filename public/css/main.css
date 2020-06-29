@@ -29,8 +29,7 @@ footer, header, hgroup, menu, nav, section {
 	display: block;
 }
 body {
-    font-family: 'Roboto', sans-serif;
-    font-size: 80px;
+	line-height: 1;
 }
 ol, ul {
 	list-style: none;
@@ -48,11 +47,32 @@ table {
 	border-spacing: 0;
 }
 /* */
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Edge, Opera and Firefox */
+}
+/* */
 body {
-    background-color: #333;
-    color: #fff;
+    background-color: #444;
+    color: #bbb;
+    font-family: 'Nunito', sans-serif;
+    font-size: 80px;
+    text-align: center;
+}
+h1 {
+    position: absolute;
+    top: 80px;
+    margin: 0 auto;
+    width: 100%;
 }
 table {
+    border-collapse: initial;
+    border-spacing: 4px;
     margin: 50vh auto 0;
     transform: translateY(-50%);
 }
@@ -60,8 +80,14 @@ tr {
     height: 150px;
 }
 td {
-    border: 1px solid #eee;
-    text-align: center;
+    background-color: #6f6f6f;
+    border-radius: 25px;
     vertical-align: middle;
     width: 150px;
+}
+td[data-token="X"] {
+    color: #ff2626;
+}
+td[data-token="O"] {
+    color: #26ff93;
 }

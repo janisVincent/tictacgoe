@@ -10,36 +10,38 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+const nbCells = 3
+const templatesDir = "public/templates/"
+
+var turn int
+
 type gridPage struct {
 	Title string
 	Cells [][]int
 }
 
-type dtoInCell struct {
-	Cell int
+type cell struct {
+	Cell int `json:"cell"`
 }
 
-type dtoOutSymbol struct {
-	Symbol string
+type token struct {
+	Token string `json:"token"`
 }
-
-var turn int
 
 func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	t := template.New("grid")
-	t = template.Must(t.ParseFiles("public/tmpl/layout.tmpl", "public/tmpl/partials/grid.tmpl"))
+	t = template.Must(t.ParseFiles(templatesDir+"layout.tmpl", templatesDir+"/partials/grid.tmpl"))
 
 	turn = 0
-	cells := make([][]int, 3)
+	cells := make([][]int, nbCells)
 
-	for i := 0; i < 3; i++ {
-		for j := 1; j <= 3; j++ {
-			cells[i] = append(cells[i], i*3+j)
+	for i := 0; i < nbCells; i++ {
+		for j := 1; j <= nbCells; j++ {
+			cells[i] = append(cells[i], i*nbCells+j)
 		}
 	}
 
-	p := gridPage{"Tic Tac Goe", cells}
-	err := t.ExecuteTemplate(w, "layout", p)
+	err := t.ExecuteTemplate(w, "layout", gridPage{"Tic Tac Goe", cells})
 
 	if err != nil {
 		log.Fatalf("Template execution: %s", err)
@@ -47,25 +49,24 @@ func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func play(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var cell dtoInCell
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&cell)
+	var cell cell
+	err := json.NewDecoder(r.Body).Decode(&cell)
 
 	if err != nil {
 		panic(err)
 	}
 
-	symbols := []string{"X", "O"}
-	var key int
+	var i int
 	if turn < 1 {
-		key = rand.Intn(1)
+		i = rand.Intn(2)
+		turn = i
 	} else {
-		key = turn % 2
+		i = turn % 2
 	}
 	turn++
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(dtoOutSymbol{symbols[key]})
+	json.NewEncoder(w).Encode(token{[]string{"X", "O"}[i]})
 }
 
 func main() {
@@ -74,8 +75,8 @@ func main() {
 	router.GET("/", index)
 	router.POST("/play", play)
 
-	router.ServeFiles("/css/*filepath", http.Dir("public/assets/css"))
-	router.ServeFiles("/js/*filepath", http.Dir("public/assets/js"))
+	router.ServeFiles("/css/*filepath", http.Dir("public/css"))
+	router.ServeFiles("/js/*filepath", http.Dir("public/js"))
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
