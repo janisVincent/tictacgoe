@@ -2,9 +2,9 @@
     <table class="table table-bordered" id="grid">
     {{range .Cells}}
         <tr>        
-            {{range .}}
-                <td data-id="{{.}}"></td>
-            {{end}}
+        {{range .}}
+            <td class="noselect" data-id="{{.}}"></td>
+        {{end}}
         </tr>
     {{end}}
     </table>

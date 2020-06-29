@@ -13,7 +13,8 @@ function down_handler(ev) {
     })
     .then(response => response.json())
     .then(jsonData => {
-        cell.innerHTML = jsonData.Symbol
+        cell.innerHTML = jsonData.token
+        cell.setAttribute('data-token', jsonData.token)
     })
     .catch(err => {
         console.log(err)
