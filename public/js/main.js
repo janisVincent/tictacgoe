@@ -8,8 +8,7 @@ function down_handler(ev) {
     }
 
     fetch('/play', {
-        method: 'POST',
-        body: JSON.stringify({ "cell": parseInt(cell.dataset['id']) })
+        method: 'POST'
     })
     .then(response => response.json())
     .then(jsonData => {
