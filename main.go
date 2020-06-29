@@ -6,33 +6,41 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-const nbCells = 3
-const templatesDir = "public/templates/"
+// Config parameters
+type Config struct {
+	FileSystem struct {
+		TemplatesDir string `yaml:"templates_dir"`
+	} `yaml:"fs"`
+	Application struct {
+		NbCells int      `yaml:"nb_cells"`
+		Tokens  []string `yaml:"tokens"`
+	} `yaml:"application"`
+}
 
-var turn int
-
-type gridPage struct {
+// GridPage structure
+type GridPage struct {
 	Title string
 	Cells [][]int
 }
 
-type cell struct {
-	Cell int `json:"cell"`
-}
-
-type token struct {
+// Token for users
+type Token struct {
 	Token string `json:"token"`
 }
 
 func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	t := template.New("grid")
-	t = template.Must(t.ParseFiles(templatesDir+"layout.tmpl", templatesDir+"/partials/grid.tmpl"))
+	t = template.Must(t.ParseFiles(cfg.FileSystem.TemplatesDir+"layout.tmpl", cfg.FileSystem.TemplatesDir+"/partials/grid.tmpl"))
 
 	turn = 0
+	nbCells := cfg.Application.NbCells
 	cells := make([][]int, nbCells)
 
 	for i := 0; i < nbCells; i++ {
@@ -41,7 +49,7 @@ func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		}
 	}
 
-	err := t.ExecuteTemplate(w, "layout", gridPage{"Tic Tac Goe", cells})
+	err := t.ExecuteTemplate(w, "layout", GridPage{"Tic Tac Goe", cells})
 
 	if err != nil {
 		log.Fatalf("Template execution: %s", err)
@@ -49,13 +57,6 @@ func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func play(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var cell cell
-	err := json.NewDecoder(r.Body).Decode(&cell)
-
-	if err != nil {
-		panic(err)
-	}
-
 	var i int
 	if turn < 1 {
 		i = rand.Intn(2)
@@ -66,10 +67,29 @@ func play(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	turn++
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(token{[]string{"X", "O"}[i]})
+	json.NewEncoder(w).Encode(Token{cfg.Application.Tokens[i]})
 }
 
+func readConfig(cfg *Config) {
+	f, err := os.Open("config.yaml")
+	if err != nil {
+		log.Fatal("Unable to read config", err)
+	}
+
+	defer f.Close()
+
+	err = yaml.NewDecoder(f).Decode(cfg)
+	if err != nil {
+		log.Fatal("Unable to parse config", err)
+	}
+}
+
+var cfg Config
+var turn int
+
 func main() {
+	readConfig(&cfg)
+
 	router := httprouter.New()
 
 	router.GET("/", index)

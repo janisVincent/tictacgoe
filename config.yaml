@@ -1,0 +1,10 @@
+# File system
+fs:
+  templates_dir: "public/templates/"
+
+# Application settings
+application:
+  nb_cells: 3
+  tokens:
+    - X
+    - O
